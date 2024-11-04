@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  amr_500_control:
+    image: wonbot/shinheeagv:control_amr500
+    container_name: amr_500_control
+    command: >
+      ros2 launch shinhee_bringup real_robot.launch.py
+    tty: true
+    hostname: amr_500_control
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: on-failure:1
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"
+
+  sicker_lidar_main:
+    image: wonbot/shinheeagv:lidar_node
+    container_name: sicker_lidar_main
+    command: >
+      ros2 launch sick_safetyscanners2 sick_safetyscanners2_launch.py
+    tty: true
+    hostname: sicker_lidar_main
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: on-failure:1
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"
+  
+  support_nodes_main:
+    image: wonbot/shinheeagv:amr_slam_nav
+    container_name: support_nodes_main
+    command: >
+      ros2 launch shinhee_amr service_topic_test.launch.py
+    tty: true
+    hostname: support_nodes_main
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: on-failure:1
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"
+
+  led_node_main:
+    image: wonbot/shinheeagv:led_amr
+    container_name: led_node_main
+    command: >
+      ros2 run shinhee_led led_main
+    tty: true
+    hostname: led_node_main
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: on-failure:1
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"
+  
+  shinhee_battery:
+    image: wonbot/shinheeagv:amr_battery
+    container_name: shinhee_battery
+    command: >
+      ros2 run shinhee_battery zenon_battery
+    tty: true
+    hostname: shinhee_battery
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: on-failure:1
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"
+  
+  amr_server_js:
+    image: wonbot/shinheeagv:node_js
+    build:
+      context: .
+      dockerfile: Dockerfile.node_js
+    container_name: amr_server_js
+    command: >
+      node server.js
+    tty: true
+    hostname: amr_server_js
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: always
+    # ports:
+    #   - "3000:3000"
+    #   - "27017:27017"
+    volumes:
+      - ${PWD}/amr_task_manager_js/maps:/amr_task_manager_js/maps
+      - ${PWD}/amr_task_manager_js/bt_trees:/amr_task_manager_js/bt_trees
+      - /var/run/docker.sock:/var/run/docker.sock  # Allow the container to control Docker on the host
+      # - ./public:/public
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"
+      - HOST_PWD=${PWD}
+  
+  # mkdir -p /home/$(whoami)/shinhee_db
+  mongodb_server: 
+    image: wonbot/shinheeagv:mongodb
+    container_name: mongodb_server
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: wonbot
+      MONGO_INITDB_ROOT_PASSWORD: wonbot
+    ports:
+      - 27017:27017
+    volumes:
+      - /shinhee_db:/data/db
+      # - /home/$(whoami)/shinhee_db:/data/dbs
+    restart: on-failure:1

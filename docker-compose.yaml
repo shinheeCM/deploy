@@ -2,7 +2,7 @@ version: '3'
 
 services:
   shinhee_node_js_service:
-    image: wonbot/shinheeagv:node_js
+    image: wonbot/shinheeagv:agv_node_js
     container_name: shinhee_node_js_service
 
     command: >
@@ -88,9 +88,10 @@ services:
       - ROS_ALLOWED_HOST="localhost"
   
   line_follow_agv_ole_lidar_node:
-    image: debanik123/line_follow_agv_ws:lidar_node.v2
+    image: wonbot/shinheeagv:lidar_node
     container_name: line_follow_agv_ole_lidar_node
-    command: bash -c "ros2 launch ros2_ouster ole2dv2_launch.py"
+    command: >
+      ros2 launch ros2_lidar ole2dv2_launch.py
     tty: true
     hostname: line_follow_agv_ole_lidar_node
     privileged: true
@@ -101,7 +102,7 @@ services:
       - ROS_ALLOWED_HOST="localhost"
   
   line_follow_agv_obstracle_det:
-    image: debanik123/line_follow_agv_ws:lidar_node.v2
+    image: wonbot/shinheeagv:camera_lidar_sf
     container_name: line_follow_agv_obstracle_det
     command: bash -c "ros2 run camera_lidar_fusion camera_lidar_fusion --ros-args --remap /scan:=/ole_scan --remap /obstacle_detected:=/ole_obstacle_detected -p height_bbx:=0.85 -p left_w:=0.5 -p right_w:=0.5 -r __node:=camera_lidar_fusion_node_ole"
     tty: true

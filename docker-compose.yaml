@@ -1,0 +1,128 @@
+version: '3'
+
+services:
+  shinhee_node_js_service:
+    image: wonbot/shinheeagv:node_js
+    container_name: shinhee_node_js_service
+
+    command: >
+      node server.js
+
+    hostname: shinhee_node_js_service
+
+    privileged: false
+    tty: true
+
+    network_mode: host
+    ipc: host
+    restart: always
+
+    environment:
+      - ROS_DOMAIN_ID=109
+
+    depends_on:
+      - shinhee_msg_srv_service
+    # ports:
+    #   - "3000:3000"
+
+    volumes:
+      - ./agv_task_manager_js/graph_data:/agv_task_manager_js/graph_data
+      - ./agv_task_manager_js/db:/agv_task_manager_js/db
+
+  shinhee_msg_srv_service:
+    image: wonbot/shinheeagv:shinhee_msg_srv
+    container_name: shinhee_msg_srv_service
+
+    command: >
+      ros2 launch shinhee_agv service_topic_test.launch.py
+    
+    hostname: shinhee_msg_srv_service
+
+    privileged: false
+    tty: true
+
+    # network_mode: bridge
+    network_mode: host
+    ipc: host
+    restart: always
+
+    environment:
+      - ROS_DOMAIN_ID=109
+  
+  shinhee_lineFollow_service:
+    image: wonbot/shinheeagv:lineFollow
+    container_name: shinhee_lineFollow_service
+    
+    command: >
+      ros2 run agv_line_follow agv_line_follow
+    
+    hostname: shinhee_lineFollow_service
+
+    privileged: true
+    tty: true
+
+    # network_mode: bridge
+    network_mode: host
+    ipc: host
+    restart: always
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - ROS_DOMAIN_ID=109
+  
+  line_follow_agv_control:
+    image: wonbot/shinheeagv:kinco_drive
+    container_name: line_follow_agv_control
+    command: >
+      ros2 run kinco_ctrl kinco_ctrl
+    tty: true
+    # volumes:
+    #   - ./src/kinco_can/kinco_can:/kinco_ws/src/kinco_can/kinco_can
+    hostname: line_follow_agv_control
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: always
+    environment:
+      - ROS_DOMAIN_ID=109
+  
+  line_follow_agv_ole_lidar_node:
+    image: debanik123/line_follow_agv_ws:lidar_node.v2
+    container_name: line_follow_agv_ole_lidar_node
+    command: bash -c "ros2 launch ros2_ouster ole2dv2_launch.py"
+    tty: true
+    hostname: line_follow_agv_ole_lidar_node
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: always
+    environment:
+      - ROS_DOMAIN_ID=109
+  
+  line_follow_agv_obstracle_det:
+    image: debanik123/line_follow_agv_ws:lidar_node.v2
+    container_name: line_follow_agv_obstracle_det
+    command: bash -c "ros2 run camera_lidar_fusion camera_lidar_fusion --ros-args --remap /scan:=/ole_scan --remap /obstacle_detected:=/ole_obstacle_detected -p height_bbx:=0.85 -p left_w:=0.5 -p right_w:=0.5 -r __node:=camera_lidar_fusion_node_ole"
+    tty: true
+    hostname: line_follow_agv_obstracle_det
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: always
+    environment:
+      - ROS_DOMAIN_ID=109
+  
+  line_follow_agv_led:
+    image: wonbot/shinheeagv:led
+    container_name: line_follow_agv_led
+    command: >
+      ros2 run shinhee_led led_main
+    tty: true
+    hostname: line_follow_agv_led
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: always
+    environment:
+      - ROS_DOMAIN_ID=109

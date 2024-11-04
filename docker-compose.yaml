@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  ktx_joy:
+    image: wonbot/shinheeagv:ktx_joy
+    container_name: ktx_joy
+    command: >
+      ros2 launch teleop_twist_joy teleop-launch.py joy_config:='ps3-holonomic' require_enable_button:=false 
+    tty: true
+    hostname: ktx_joy
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: always
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"
+  
+  ktx_drive:
+    image: wonbot/shinheeagv:ktx_drive
+    container_name: ktx_drive
+    command: >
+      ros2 launch shinhee_control shinhee_control_launch.py model_type:=mecanum
+    tty: true
+    hostname: ktx_drive
+    privileged: true
+    network_mode: host
+    ipc: host
+    restart: always
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_ALLOWED_HOST="localhost"

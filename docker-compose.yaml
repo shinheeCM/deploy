@@ -18,7 +18,7 @@ services:
     restart: always
 
     environment:
-      - ROS_DOMAIN_ID=109
+      - ROS_ALLOWED_HOST="localhost"
 
     depends_on:
       - shinhee_msg_srv_service
@@ -47,7 +47,7 @@ services:
     restart: always
 
     environment:
-      - ROS_DOMAIN_ID=109
+      - ROS_ALLOWED_HOST="localhost"
   
   shinhee_lineFollow_service:
     image: wonbot/shinheeagv:lineFollow
@@ -69,7 +69,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
-      - ROS_DOMAIN_ID=109
+      - ROS_ALLOWED_HOST="localhost"
   
   line_follow_agv_control:
     image: wonbot/shinheeagv:kinco_drive
@@ -85,7 +85,7 @@ services:
     ipc: host
     restart: always
     environment:
-      - ROS_DOMAIN_ID=109
+      - ROS_ALLOWED_HOST="localhost"
   
   line_follow_agv_ole_lidar_node:
     image: debanik123/line_follow_agv_ws:lidar_node.v2
@@ -98,7 +98,7 @@ services:
     ipc: host
     restart: always
     environment:
-      - ROS_DOMAIN_ID=109
+      - ROS_ALLOWED_HOST="localhost"
   
   line_follow_agv_obstracle_det:
     image: debanik123/line_follow_agv_ws:lidar_node.v2
@@ -111,7 +111,7 @@ services:
     ipc: host
     restart: always
     environment:
-      - ROS_DOMAIN_ID=109
+      - ROS_ALLOWED_HOST="localhost"
   
   line_follow_agv_led:
     image: wonbot/shinheeagv:led
@@ -125,4 +125,4 @@ services:
     ipc: host
     restart: always
     environment:
-      - ROS_DOMAIN_ID=109
+      - ROS_ALLOWED_HOST="localhost"

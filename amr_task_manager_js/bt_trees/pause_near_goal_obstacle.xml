@@ -1,0 +1,66 @@
+<!--
+  This Behavior Tree replans the global path only when the goal is updated.
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <PipelineSequence name="NavigateWithReplanning">
+      <GoalUpdatedController>
+        <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+      </GoalUpdatedController>
+
+      <ReactiveSequence name="MonitorAndFollowPath">
+        <PathLongerOnApproach path="{path}" prox_len="1.0" length_factor="0.4">
+
+
+          <Sequence>
+            <!-- Stop and wait if the robot is near an obstacle -->
+            <CancelControl name="ControlCancel"/>
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+
+            <!-- <Wait wait_duration="5.0"/> -->
+
+            <!-- <ComputePathToPose name="recompute_path" goal="{goal}" path="{path}" planner_id="GridBased"/> -->
+            <FollowPath name="follow_recomputed_path" path="{path}" controller_id="FollowPath"/>
+
+          </Sequence>
+        </PathLongerOnApproach>
+
+        <!-- Recompute path and follow -->
+
+        <RetryUntilSuccessful num_attempts="50000">
+          <Sequence>
+            <!-- Clear the local costmap, including the voxel layer -->
+            <CancelControl name="ControlCancel"/>
+
+            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+
+            <Wait wait_duration="1.0"/>
+
+            <!-- <ComputePathToPose name="recompute_path" goal="{goal}" path="{path}" planner_id="GridBased"/> -->
+            <FollowPath name="follow_recomputed_path" path="{path}" controller_id="FollowPath"/>
+          </Sequence>
+        </RetryUntilSuccessful>
+
+        <!-- Recovery actions if following path fails -->
+        <!-- <RecoveryNode number_of_retries="5" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode> -->
+      </ReactiveSequence>
+
+      <!-- <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <RoundRobin name="RecoveryActions">
+          <Sequence name="ClearingActions">
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </Sequence>
+          <Spin spin_dist="1.57"/>
+          <Wait wait_duration="5"/>
+          <BackUp backup_dist="0.30" backup_speed="0.05"/>
+        </RoundRobin>
+      </ReactiveFallback> -->
+    </PipelineSequence>
+  </BehaviorTree>
+</root>

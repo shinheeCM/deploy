@@ -77,10 +77,10 @@ services:
       - ROS_ALLOWED_HOST="localhost"
   
   amr_server_js:
-    image: wonbot/shinheeagv:node_js
+    image: wonbot/shinheeagv:amr_node_js
     build:
       context: .
-      dockerfile: Dockerfile.node_js
+      dockerfile: Dockerfile.amr_node_js
     container_name: amr_server_js
     command: >
       node server.js
